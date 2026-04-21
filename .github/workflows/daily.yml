@@ -1,0 +1,36 @@
+name: Ice Deal Watch — denní scraping
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # každý den v 7:00 CZ (UTC+2 = 05:00 UTC)
+  workflow_dispatch:        # možnost spustit ručně jedním kliknutím
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kódu
+        uses: actions/checkout@v4
+
+      - name: Nastavení Pythonu
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalace závislostí
+        run: |
+          pip install requests beautifulsoup4 pandas xlsxwriter
+
+      - name: Spuštění scraperu
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+        run: python scraper.py
+
+      - name: Uložení Excel výstupu jako artefakt
+        uses: actions/upload-artifact@v4
+        with:
+          name: Srovnani_zmrzlin
+          path: Srovnani_zmrzlin.xlsx
+          retention-days: 30
